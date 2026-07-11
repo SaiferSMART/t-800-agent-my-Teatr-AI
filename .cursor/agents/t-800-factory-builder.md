@@ -27,7 +27,7 @@ is_background: false
    - frontmatter: name, description, model, readonly, is_background
    - тело: роль, алгоритм 3–7 шагов, выход, связи, запреты
 3. Если spec.companions.command — создай `commands/{name}.md` из `templates/command.md.template`
-4. Если spec.companions.rule — черновик `rules/routing-{category}.mdc` (фрагмент, integrator допишет)
+4. Если spec.companions.rule — черновик `rules/routing-{category}.mdc` (фрагмент, integrator допишет); **только русский** (`shared/rule-language-contract.md`)
 5. Если spec.companions.skill — папка `skills/{name}/SKILL.md` с frontmatter
 6. **Не** правь registry и install — это integrator
 

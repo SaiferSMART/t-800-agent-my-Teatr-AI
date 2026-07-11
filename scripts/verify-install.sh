@@ -62,6 +62,7 @@ warn_if_present() {
   echo "OK   $name"
 }
 
+check_exists "russian rules language rule" "$RULES/russian-rules-language.mdc" true "только на русском"
 check_exists "t-800-operator subagent" "$AGENTS/t-800-operator.md" true "name: t-800-operator"
 check_exists "t-800-maintainer subagent" "$AGENTS/t-800-maintainer.md" true "name: t-800-maintainer"
 check_exists "maintainer skill" "$SKILLS/t-800-knowledge-base/SKILL.md" true "disable-model-invocation: true"
@@ -189,6 +190,10 @@ if ! grep -q "readonly: false" "$AGENTS/t-800-maintainer.md" 2>/dev/null; then
 else
   echo "OK   t-800-maintainer writable"
 fi
+
+warn_if_missing "global russian-rules rule" \
+  "$USER_RULES/russian-rules-language.mdc" \
+  "отсутствует — установите: bash scripts/install-russian-rules-rule.sh --yes"
 
 warn_if_missing "global mandatory-routing rule" \
   "$USER_RULES/t-800-mandatory-routing.mdc" \
