@@ -13,7 +13,7 @@ alwaysApply: true
 - Создать, изменить или удалить **субагента** (`agents/*.md`)
 - Создать или изменить **skill** (`.cursor/skills/`)
 - Создать или изменить **command** (`.cursor/commands/`)
-- Создать или изменить **rule** (`.cursor/rules/*.mdc`)
+- Создать или изменить **rule** (`.cursor/rules/*.mdc`) — **текст на русском** (`shared/rule-language-contract.md`)
 - Создать или изменить **hook** (`hooks.json`, `.cursor/hooks/`)
 - Скрипты установки/валидации плагина (`scripts/register-agent.ps1` и т.д.)
 - Вопрос «как правильно в Cursor» при проектировании артефактов
@@ -101,4 +101,4 @@ Fragments и manifest пишутся в **memory_path целевого прое�
 `~/.cursor/plugins/local/t-800-agent/`
 
 Реестр: `registry/agents-registry.json`  
-Контракты: `shared/t-800-*.md`, `shared/department-orchestration-contract.md`, `shared/loop-engineering-contract.md`, `shared/fix-pipeline-contract.md`, `shared/plugin-audit-contract.md`, `shared/auto-update-contract.md`, `shared/search-strategy-contract.md`, `shared/deep-research-contract.md`, `shared/clawhub-research-contract.md`, `shared/vendor-docs-matrix.md`, `shared/research-docs-contract.md`, `shared/prompt-craft-contract.md`
+Контракты: `shared/t-800-*.md`, `shared/rule-language-contract.md`, `shared/department-orchestration-contract.md`, `shared/loop-engineering-contract.md`, `shared/fix-pipeline-contract.md`, `shared/plugin-audit-contract.md`, `shared/auto-update-contract.md`, `shared/search-strategy-contract.md`, `shared/deep-research-contract.md`, `shared/clawhub-research-contract.md`, `shared/vendor-docs-matrix.md`, `shared/research-docs-contract.md`, `shared/prompt-craft-contract.md`
