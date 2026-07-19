@@ -2,6 +2,59 @@
 
 Формат: дата — что изменилось — источник.
 
+## 1.19.0 — 2026-07-18
+
+- **Discovery:** marker + `knowledge_vault_path` не перебивает `profile=teya-plugin-dev` на TeyaPlugin
+- **Agents mirror gate:** `scripts/t800_agents_mirror_gate.py` — parity `agents/` ↔ `.cursor/agents/` (FS + git one-sided drift → FAIL)
+- `verify-install.sh` — always-on mirror gate; `t800_run_gate.py --require-agents-mirror` (opt-in)
+
+## 1.18.0 — 2026-07-18
+
+- **Lesson Lifecycle v1.1** — `status`: open | applied | rejected (`shared/lesson-schema-contract.md`)
+- `loop-queue`: секции **Open** / **Closed**; conductor — open-only approve
+- `t800_lessons_to_fixpack.py`: generate только open+LOW; `--mark-applied` / `--mark-rejected`
+- Fixtures: `tests/fixtures/loop/lifecycle/` + classifier ignore status-полей
+
+## 1.17.1 — 2026-07-17
+
+- **Target Knowledge Vault** — optional `knowledge_vault_path` в discovery/marker (runtime-only)
+- Machine gate: `scripts/t800_kb_provenance_gate.py` (manifest pages[] или YAML frontmatter provenance: manual)
+- Контракты: runtime-only forbid в `shared/project-memory-contract.md` + инлайн в `shared/project-discovery-contract.md`
+- Релизная гигиена acceptance: version bump + CHANGELOG (этот PATCH)
+
+## 1.17.0 — 2026-07-17
+
+- **Loop Engineering v2** — semi-manual закрытие прогона: report → lessons → queue handoff
+- Команда **`/t800-loop`** + субагент `t-800-loop-conductor` (system-adjacent, readonly)
+- Контракты: `shared/loop-engineering-contract.md` v2.0.0, `shared/lesson-schema-contract.md`
+- Скрипты: `t800_run_report.py`, `t800_lessons_export.py`, `t800_telemetry.py`, `t800_risk_classifier.py`, `t800_lessons_to_fixpack.py`, `t800_golden_check.py`, `t800-loop-dispatcher.sh`, `t800_loop_queue_write.py`
+- Память: `runs/`, `telemetry/`, `loop-queue.md`, `.loop-paused`, `golden/`, `loop/` (session-notice); fix-packs из lessons
+- `risk_class` — только script classifier; без stop/followup; sessionStart остаётся **один** hook (dispatcher внутри bootstrap)
+- Handoff: после `/t800-start` → `/t800-loop`; batch из queue → `/t800-fix`
+
+## 1.16.1 — 2026-07-14
+
+- Защита от обхода factory (анти-паттерн Zen Intel): Plan→Implement только через `/t800-start` / `/t800-fix`
+- Контракт: `shared/plan-to-factory-handoff-contract.md`
+- BLOCKER в `rules/t-800-mandatory-routing.mdc`: запрет Write/StrReplace артефактов Cursor вне factory
+- Machine gates: `scripts/t800_factory_bypass_gate.py`, `t800_run_gate.py --strict-create`
+- Hook `beforeFileEdit` → `hooks/before-artifact-edit.sh` (v1: WARN, не hard-deny)
+- Тест-сценарий 6 в `tests/TEST-SCENARIOS.md`
+
+## 1.16.0 — 2026-07-13
+
+- **Отдел Cloud Hub Automation Setup** (6 агентов): `t-800-cloud-hub-lead` + analyst / prompt / pack / smoke + `t-800-cursor-kb-curator`
+- Команда **`/t800-cloud-hub`** (алиас `/t800-hub-setup`) — blank Hub + Client TZ-builder для Cursor Automations
+- Контракты: `shared/cloud-hub-setup-contract.md`, `shared/project-memory-dual-write-contract.md`
+- Rule: `rules/t-800-cloud-hub-routing.mdc` (не always-on)
+- Примеры паттернов: `docs/examples/cloud-hub/` (EXAMPLE only, без секретов)
+- README / инструкции обновлены; roster **42** Task-субагента
+
+## 1.15.3 — 2026-07-12
+
+- `HEALTH-REPORT.md`: убраны абсолютные пути машины автора (плагин для команды)
+- `health-check.sh` / `health-check.ps1`: в отчёт пишут относительные/`~/...` пути, не `/Users/...`
+
 ## 1.15.2 — 2026-07-09
 
 - Подробный README: возможности, все команды, сценарии, **примеры промптов** (audit Cursor, doctor, plugin-audit, start/fix)

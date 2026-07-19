@@ -37,7 +37,8 @@ project-memory.marker.json
   "slug": "my-plugin",
   "memory_dir": "my-plugin-memory",
   "plugin_root": ".",
-  "release_handoff": null
+  "release_handoff": null,
+  "knowledge_vault_path": null
 }
 ```
 
@@ -47,6 +48,7 @@ project-memory.marker.json
 | `memory_dir` | Папка памяти относительно workspace |
 | `plugin_root` | `.` или подпапка с `.cursor-plugin/plugin.json` |
 | `release_handoff` | Команда release (например `/teya-release-sync`) или null |
+| `knowledge_vault_path` | Optional. Absolute path **или** relative от workspace root → target vault (Obsidian-style). `null` / отсутствует → discovery emit `null`. Relative → absolute от workspace root. **Target vault runtime-only:** читать можно; **forbid** копировать содержимое vault в `agents/`, `skills/`, `knowledge-base/`, `shared/`, `commands/` плагина. Полный закон: `shared/project-memory-contract.md`. |
 
 T-800 **не создаёт** marker в чужих проектах без запроса. Для нового плагина — `bash scripts/init-project-memory.sh`.
 
@@ -95,8 +97,10 @@ T-800 **не создаёт** marker в чужих проектах без за�
 
 | Скрипт | Назначение |
 |--------|------------|
-| `discover-target-project.sh` | JSON: workspace, plugin_root, memory_path, profile |
+| `discover-target-project.sh` | JSON: workspace, plugin_root, memory_path, profile, `knowledge_vault_path` (`null` если не задано) |
 | `list-target-plugins.sh` | Список checkout'ов из `~/.t800/known-plugins.json` |
 | `init-project-memory.sh` | Scaffold memory для нового плагина |
+
+Discovery JSON: поле `knowledge_vault_path` — `null` или absolute string (relative из marker уже resolved от workspace root).
 
 Контракт памяти: `shared/project-memory-contract.md`
