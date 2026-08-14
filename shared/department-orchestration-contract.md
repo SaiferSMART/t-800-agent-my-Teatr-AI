@@ -3,14 +3,19 @@
 Контракт взаимодействия отделов T-800. **Новых агентов в Research/Brains не добавляем** — усиливаем логику вызовов и прогресс.  
 Loop / STATE / machine gates: `shared/loop-engineering-contract.md`.
 
-## Четыре отдела
+## Четыре отдела (+ system-adjacent)
 
 | Отдел | Лид | Специалисты | Кто запускает |
 |-------|-----|-------------|---------------|
-| **System / Mentor** | — | onboard, system-auditor, **plugin-auditor**, operator, intake-clarifier, maintainer | Директор по команде (`/t800-*`) |
+| **System / Mentor** | — | onboard, system-auditor, **plugin-auditor**, operator, intake-clarifier, maintainer, **cursor-kb-curator**† | Директор по команде (`/t800-*`) |
 | **Research** | `t-800-research-lead` | strategist, github, repo-miner, community, clawhub, vendor-docs, docs, news, synthesizer, prompt-craft* | Директор → **lead сам** fan-out |
-| **Brains** | `t-800-brain-lead` | agents, context, cloud, dev, admin, security, tools, teya | Директор → **lead сам** выбирает 1–2 domain |
+| **Brains** | `t-800-brain-lead` | agents, context, cloud, dev, admin, security, tools (+ adapter brains из `adapters/`) | Директор → **lead сам** выбирает 1–2 domain |
 | **Factory** | `t-800-factory` | architect, hooks, scripts, mcp-wiring, builder, integrator, prompt-auditor, auditor | Директор → **lead сам** пайплайн |
+| **Cloud Hub** (system-adjacent) | `t-800-cloud-hub-lead` | analyst, prompt, pack, smoke | Директор → `/t800-cloud-hub`; lead сам selective fan-out |
+| **Loop** (system-adjacent) | — | **`t-800-loop-conductor`**‡ | Директор → `/t800-loop` (semi-manual; не research/brain leaf) |
+
+† `t-800-cursor-kb-curator` — каденс living KB (`UPDATE-QUEUE` → maintainer); **не** на каждый hub-setup.  
+‡ `t-800-loop-conductor` — **не** новый research/brain агент: только report/lessons → queue handoff; `risk_class` script-only.
 
 \* `prompt-craft` — research-adjacent; вызывает Директор **или** factory lead после research (см. ниже).
 
@@ -35,7 +40,7 @@ Loop / STATE / machine gates: `shared/loop-engineering-contract.md`.
        └─ АВТО: strategist → specialists → synthesizer
 [2b] prompt-craft?              ← если agent|skill|command
 [3]  brain-lead                 ← всегда перед factory
-       └─ АВТО: 1–2 domain brains (+ teya если profile)
+       └─ АВТО: 1–2 domain brains (+ adapter brain если declared profile)
 [4]  factory
        └─ АВТО: architect → companions? → builder → integrator
                 → prompt-auditor? → auditor
@@ -132,9 +137,9 @@ progress:
 | CLI / SDK | brain-dev |
 | security / readonly / permissions | brain-security |
 | terminal/browser tools в промпте | brain-tools |
-| profile teya-* | brain-teya **обязательно** |
+| declared adapter profile (discovery `adapter` != null) | adapter brain **обязательно** (matcher `adapters/<id>/profiles.py`) |
 
-3. Максимум **2** domain за прогон (кроме teya + один Cursor domain)  
+3. Максимум **2** domain за прогон (кроме adapter brain + один Cursor domain)  
 4. Собрать `brief_for_factory` — не дублировать весь research, а **сверить** с KB и официальными URL  
 
 ### Factory-lead
@@ -146,6 +151,13 @@ progress:
 5. factory-auditor всегда; FAIL → не «готово»  
 6. Factory done = auditor `status: ok` **и** machine scripts (`validate-agents` / `audit-agent-graph` / `verify-install` когда применимо) exit 0  
 7. Repair: до 2 циклов builder/integrator → re-audit; 3-й FAIL → escalate (`loop-engineering-contract`)  
+
+### Cloud-hub-lead (system-adjacent)
+
+1. Discovery `memory_path` → артефакты только в `{memory}/cloud-hub/`  
+2. Selective fan-out: analyst | prompt | pack | smoke (не все без нужды)  
+3. **Не** звать `t-800-cursor-kb-curator` на каждый run  
+4. Контракт: `shared/cloud-hub-setup-contract.md`  
 
 ## Параллельность
 
@@ -177,7 +189,9 @@ progress:
 | `/t800-plugin-audit` | System | plugin-auditor + `t800_plugin_audit.py` (карта плагина → `{memory}/audits/`) → опц. `t800_audit_to_fixpack` |
 | `/t800-doctor` | System | `t800_doctor.py` (scripts-only; narrative onboard только по просьбе) |
 | `/t800-fix` | Research?→Brains→Factory | fix-pack → research SKIP/LIGHT → brain → factory **PATCH** → `t800_run_gate.py` |
+| `/t800-loop` | Loop (system-adjacent) | `t-800-loop-conductor` + scripts; semi-manual; queue → опц. `/t800-fix` |
 | `/t800-update` | System | ручной fallback; авто = `sessionStart` → `t800-auto-version-check.sh` |
+| `/t800-cloud-hub` (`/t800-hub-setup`) | Cloud Hub | только `t-800-cloud-hub-lead` → selective specialists; KB curator — отдельно |
 | `/t-800-operator` | System | operator |
 | `/t-800-health` | System | scripts health |
 | `/t800-start` | все 4 | полная цепочка выше (создание; правка → `/t800-fix`) |
@@ -192,7 +206,8 @@ progress:
 
 ## Версия
 
+- Обновлён: 2026-07-28 · T-800 **1.20.0** (adapter framework `adapters/` Phase 1+2; `/t800-loop`, loop-conductor)  
 - Обновлён: 2026-07-09 · T-800 **1.13.0** (`/t800-fix`, `/t800-doctor`, run_gate)  
 - Loop: 2026-07-09 · T-800 **1.12.0** (STATE / machine gates)  
 - Введён отделы: 2026-07-09 · T-800 **1.11.0**  
-- Связанные: `loop-engineering-contract.md`, `fix-pipeline-contract.md`, `deep-research-contract.md`, `search-strategy-contract.md`, `t-800-factory-contract.md`, `plugin-audit-contract.md`, `t800-start.md`
+- Связанные: `loop-engineering-contract.md`, `lesson-schema-contract.md`, `fix-pipeline-contract.md`, `deep-research-contract.md`, `search-strategy-contract.md`, `t-800-factory-contract.md`, `plugin-audit-contract.md`, `t800-start.md`

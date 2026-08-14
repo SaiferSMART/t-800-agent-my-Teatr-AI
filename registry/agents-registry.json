@@ -1,8 +1,12 @@
 {
   "$schema": "./agents-registry.schema.json",
   "version": 2,
-  "updated": "2026-07-09",
+  "updated": "2026-07-31",
   "plugin": "t-800-agent",
+  "notes": "description = short catalog text; routing-текст живёт в frontmatter агента (agents/*.md)",
+  "virtualNodes": {
+    "main-agent": "main chat / Директор — точка входа вызовов, не агент плагина"
+  },
   "categories": {
     "scout": "Разведывательный модуль (Recon)",
     "research": "Автономная DEEP-разведка: strategist → specialists → synthesizer",
@@ -10,7 +14,8 @@
     "factory": "Сборочный конвейер артефактов",
     "mentor": "Оператор и онбординг новичков",
     "system": "Системный аудит плагинов и инфраструктуры Cursor",
-    "maintainer": "Синхронизатор памяти KB"
+    "maintainer": "Синхронизатор памяти KB",
+    "cloud-hub": "Cloud Hub / Client Automation Setup"
   },
   "agents": [
     {
@@ -20,7 +25,8 @@
       "readonly": true,
       "calls": [
         "t-800-maintainer",
-        "t-800-research-lead"
+        "t-800-research-lead",
+        "t-800-cursor-kb-curator"
       ],
       "calledBy": [
         "main-agent",
@@ -185,8 +191,7 @@
         "t-800-brain-dev",
         "t-800-brain-admin",
         "t-800-brain-security",
-        "t-800-brain-tools",
-        "t-800-brain-teya"
+        "t-800-brain-tools"
       ],
       "calledBy": [
         "main-agent",
@@ -270,17 +275,6 @@
         "t-800-brain-lead"
       ],
       "description": "KB: terminal, browser, search"
-    },
-    {
-      "id": "t-800-brain-teya",
-      "file": "agents/t-800-brain-teya.md",
-      "category": "brains",
-      "readonly": true,
-      "calls": [],
-      "calledBy": [
-        "t-800-brain-lead"
-      ],
-      "description": "KB: Teya Pro plugin paths, contracts, release"
     },
     {
       "id": "t-800-factory",
@@ -418,7 +412,7 @@
     {
       "id": "t-800-system-auditor",
       "file": "agents/t-800-system-auditor.md",
-      "category": "mentor",
+      "category": "system",
       "readonly": true,
       "calls": [],
       "calledBy": [
@@ -436,6 +430,17 @@
         "main-agent"
       ],
       "description": "Аудит одного плагина: inventory/graph/orphans/alwaysApply → {memory}/audits/"
+    },
+    {
+      "id": "t-800-loop-conductor",
+      "file": "agents/t-800-loop-conductor.md",
+      "category": "system",
+      "readonly": true,
+      "calls": [],
+      "calledBy": [
+        "main-agent"
+      ],
+      "description": "Semi-manual loop: report/lessons → queue handoff; open-only approve (open|absent→open; applied|rejected=Closed, no action); risk_class script-only; no stop/followup. Use when /t800-loop."
     },
     {
       "id": "t-800-operator",
@@ -456,9 +461,95 @@
       "calls": [],
       "calledBy": [
         "main-agent",
-        "t-800-scout"
+        "t-800-scout",
+        "t-800-cursor-kb-curator"
       ],
       "description": "Sync KB из cursor.com"
+    },
+    {
+      "id": "t-800-cloud-hub-lead",
+      "file": "agents/t-800-cloud-hub-lead.md",
+      "category": "cloud-hub",
+      "readonly": false,
+      "calls": [
+        "t-800-cloud-hub-analyst",
+        "t-800-cloud-hub-prompt",
+        "t-800-cloud-hub-pack",
+        "t-800-cloud-hub-smoke"
+      ],
+      "calledBy": [
+        "main-agent"
+      ],
+      "description": "Оркестратор Blank Hub+Client setup; fan-out; materialize cloud-hub/*"
+    },
+    {
+      "id": "t-800-cloud-hub-analyst",
+      "file": "agents/t-800-cloud-hub-analyst.md",
+      "category": "cloud-hub",
+      "readonly": true,
+      "calls": [],
+      "calledBy": [
+        "t-800-cloud-hub-lead"
+      ],
+      "description": "Readonly capability map: checkout + *-memory/"
+    },
+    {
+      "id": "t-800-cloud-hub-prompt",
+      "file": "agents/t-800-cloud-hub-prompt.md",
+      "category": "cloud-hub",
+      "readonly": false,
+      "calls": [],
+      "calledBy": [
+        "t-800-cloud-hub-lead"
+      ],
+      "description": "Blank Hub + Client TZ-builder Instructions (product-agnostic)"
+    },
+    {
+      "id": "t-800-cloud-hub-pack",
+      "file": "agents/t-800-cloud-hub-pack.md",
+      "category": "cloud-hub",
+      "readonly": false,
+      "calls": [],
+      "calledBy": [
+        "t-800-cloud-hub-lead"
+      ],
+      "description": "pack-schema / command_ref / callback fields"
+    },
+    {
+      "id": "t-800-cloud-hub-smoke",
+      "file": "agents/t-800-cloud-hub-smoke.md",
+      "category": "cloud-hub",
+      "readonly": false,
+      "calls": [],
+      "calledBy": [
+        "t-800-cloud-hub-lead"
+      ],
+      "description": "Smoke checklist ping→execute→callback + auth caveats"
+    },
+    {
+      "id": "t-800-cursor-kb-curator",
+      "file": "agents/t-800-cursor-kb-curator.md",
+      "category": "maintainer",
+      "readonly": false,
+      "calls": [
+        "t-800-maintainer"
+      ],
+      "calledBy": [
+        "main-agent",
+        "t-800-scout"
+      ],
+      "description": "Cadence KB: UPDATE-QUEUE → maintainer; deepen 10-cloud-automation"
     }
-  ]
+  ],
+  "adapters": {
+    "teya": {
+      "manifest": "adapters/teya/adapter.manifest.json",
+      "brain": "adapters/teya/agents/t-800-brain-teya.md",
+      "profiles": [
+        "teya-plugin-dev",
+        "teya-client",
+        "teya-pro"
+      ]
+    }
+  }
 }

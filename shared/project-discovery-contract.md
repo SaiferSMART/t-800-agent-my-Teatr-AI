@@ -6,9 +6,9 @@
 
 | Понятие | Что это | Пример |
 |---------|---------|--------|
-| **workspace_root** | Папка, открытая в Cursor сейчас | `Мой сайт/`, `TeyaPlugin/` |
-| **plugin_root** | Git/checkout плагина, куда пишутся `agents/`, `skills/`, `commands/` | `$TEYA_PLUGIN_ROOT`, `t-800-agent/` |
-| **memory_path** | Папка памяти **этого** workspace или сессии | `teya-memory/`, `plugin-memory/`, `{slug}-memory/` |
+| **workspace_root** | Папка, открытая в Cursor сейчас | `Мой сайт/`, `MyPlugin/` |
+| **plugin_root** | Git/checkout плагина, куда пишутся `agents/`, `skills/`, `commands/` | `$<PLUGIN_ENV_KEY>` из профиля, `t-800-agent/` |
+| **memory_path** | Папка памяти **этого** workspace или сессии | `plugin-memory/`, `{slug}-memory/` |
 
 **Закон:** память прогона T-800 живёт в **memory_path целевого контекста**, не «всегда в t-800-memory».  
 `t-800-memory/` — только если workspace **разрабатывает сам T-800 Agent** (см. marker ниже).
@@ -37,7 +37,8 @@ project-memory.marker.json
   "slug": "my-plugin",
   "memory_dir": "my-plugin-memory",
   "plugin_root": ".",
-  "release_handoff": null
+  "release_handoff": null,
+  "knowledge_vault_path": null
 }
 ```
 
@@ -46,7 +47,8 @@ project-memory.marker.json
 | `slug` | Короткое имя плагина |
 | `memory_dir` | Папка памяти относительно workspace |
 | `plugin_root` | `.` или подпапка с `.cursor-plugin/plugin.json` |
-| `release_handoff` | Команда release (например `/teya-release-sync`) или null |
+| `release_handoff` | Команда release целевого плагина или null |
+| `knowledge_vault_path` | Optional. Absolute path **или** relative от workspace root → target vault (Obsidian-style). `null` / отсутствует → discovery emit `null`. Relative → absolute от workspace root. **Target vault runtime-only:** читать можно; **forbid** копировать содержимое vault в `agents/`, `skills/`, `knowledge-base/`, `shared/`, `commands/` плагина. Полный закон: `shared/project-memory-contract.md`. |
 
 T-800 **не создаёт** marker в чужих проектах без запроса. Для нового плагина — `bash scripts/init-project-memory.sh`.
 
@@ -54,26 +56,28 @@ T-800 **не создаёт** marker в чужих проектах без за�
 
 | Сигнал | profile | plugin_root | memory_dir |
 |--------|---------|-------------|------------|
-| `plugin-memory/` + `.cursor-plugin/plugin.json` + teya gates | `teya-plugin-dev` | workspace | `plugin-memory/` |
-| `teya-memory/` в workspace | `teya-client` | `$TEYA_PLUGIN_ROOT` (env) | `teya-memory/` |
+| Маркеры из `profiles/<id>.md` (`require` + `any_of` + `memory_dir_present`) | declared profile | env / readonly fallback / workspace self — из поля `plugin_root` профиля | `memory_dir` профиля |
 | `.cursor-plugin/plugin.json` + `{name}-memory/` | `generic-plugin` | workspace или marker | `{name}-memory/` |
 | Marker `t-800-agent` / memory `t-800-memory` | `self-t800` | `t-800-agent/` | `t-800-memory/` |
 
+Product-профили декларативны: `profiles/*.md` (один fenced ```json блок — SoT маркеров).
+Поле `adapter` профиля → discovery `adapter`; специфика адаптера — `adapters/<id>/`.
+
 ## Сценарии оператора
 
-### A. Разработка Teya Plugin (отдельная папка TeyaPlugin)
+### A. Declared adapter profile (разработка продукта с адаптером)
 
-- workspace = TeyaPlugin
-- plugin_root = workspace
-- memory = `plugin-memory/` + эфемерно `.teya-plugin-run/`
-- Release: `/teya-release-sync`
+- workspace = checkout плагина продукта
+- profile/plugin_root/memory — из `profiles/<id>.md`
+- Release: `release_handoff` профиля (выполняется вне T-800)
+- Пример: adapter `<id>` (см. `adapters/<id>/`)
 
-### B. Клиентский сайт — правка агентов Teya
+### B. Клиент продукта с адаптером — правка агентов из клиента
 
-- workspace = клиент (`teya-memory/`)
-- plugin_root = `$TEYA_PLUGIN_ROOT` (git checkout, **не** `~/.cursor/plugins/local/teya`)
-- memory прогона = `teya-memory/fragments/` + `run-manifest.json`
-- После integrator: handoff release-sync в TeyaPlugin workspace
+- workspace = клиент (memory dir из профиля)
+- plugin_root = env_key профиля (git checkout, **не** installed readonly fallback)
+- memory прогона = `<memory_dir>/fragments/` + `run-manifest.json`
+- После integrator: handoff `release_handoff` в workspace плагина
 
 ### C. Новый плагин Foo
 
@@ -87,16 +91,18 @@ T-800 **не создаёт** marker в чужих проектах без за�
 
 ## Запреты
 
-- Не писать артефакты Teya в `~/.cursor/plugins/local/teya` (перезаписывается sync)
+- Не писать артефакты в installed readonly fallback `~/.cursor/plugins/local/<id>` (перезаписывается sync)
 - Не assume `target_plugin=t-800-agent` без discovery
-- Не смешивать `plugin-memory/` (TeyaPlugin repo) и `teya-memory/` (клиент)
+- Не смешивать memory разработки плагина (`plugin-memory/` в checkout) и memory клиента (`{slug}-memory/`)
 
 ## Скрипты
 
 | Скрипт | Назначение |
 |--------|------------|
-| `discover-target-project.sh` | JSON: workspace, plugin_root, memory_path, profile |
+| `discover-target-project.sh` | JSON: workspace, plugin_root, memory_path, profile, `knowledge_vault_path` (`null` если не задано) |
 | `list-target-plugins.sh` | Список checkout'ов из `~/.t800/known-plugins.json` |
 | `init-project-memory.sh` | Scaffold memory для нового плагина |
+
+Discovery JSON: поле `knowledge_vault_path` — `null` или absolute string (relative из marker уже resolved от workspace root).
 
 Контракт памяти: `shared/project-memory-contract.md`

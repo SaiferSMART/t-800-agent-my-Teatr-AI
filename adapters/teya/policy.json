@@ -1,0 +1,38 @@
+{
+  "schema_version": "2.0.0",
+  "phase": 2,
+  "hook_boundary": {
+    "default_mode": "warn",
+    "t800_core_hook_note": "T-800 preToolUse hook hooks/before-artifact-edit.sh (artifact-edit guard) default mode is enforce since 1.22.0 (opt-out via T800_HOOK_MODE / T800_TEYA_HOOK_MODE). This adapter does NOT auto-enable enforce; auto_enable_enforce remains false.",
+    "modes": {
+      "observe": "Log only; always allow artifact edits",
+      "warn": "Allow + userMessage when no factory run (adapter default_mode; Teya boundary stays warn)",
+      "enforce": "Deny artifact edits outside confirmed factory run (T-800 core hook default since 1.22.0; adapter auto-enable still false)"
+    },
+    "enforce_requires": [
+      "hook_enforce_ready=true",
+      "phase1_fixtures_pass",
+      "phase2_fixtures_pass",
+      "factory_bypass_gate_pass",
+      "materializer_dry_run_pass",
+      "stale_detection_pass",
+      "explicit_env_T800_TEYA_HOOK_MODE=enforce"
+    ],
+    "auto_enable_enforce": false,
+    "hook_enforce_ready": false
+  },
+  "env_keys": {
+    "hook_mode": "T800_TEYA_HOOK_MODE",
+    "factory_run_id": "T800_FACTORY_RUN_ID",
+    "memory_path": "T800_MEMORY_PATH",
+    "release_evidence_writer": "TEYA_RELEASE_EVIDENCE_WRITER"
+  },
+  "evidence_bridge": {
+    "handoff": "plugin-memory/factory-handoffs/<run-id>.json",
+    "provenance": "plugin-memory/orchestration/provenance/<run-id>.json",
+    "verifier": "teya_t800_handoff_verify.py",
+    "stale_check": "teya_t800_provenance_stale_check.py",
+    "materializer": "teya_t800_materialize_onboarding.py",
+    "release_evidence": "teya_t800_release_evidence.py"
+  }
+}

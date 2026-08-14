@@ -9,7 +9,7 @@ $manifestPath = Join-Path $kb "manifest.json"
 $reportPath = Join-Path $kb "COVERAGE-REPORT.md"
 
 if (-not (Test-Path $manifestPath)) {
-    throw "Missing manifest: $manifestPath. Run scripts\sync-docs.ps1 first."
+    throw "Missing manifest: $manifestPath. Sync KB manually (fetch URLs from manifest.json)."
 }
 
 $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding utf8 | ConvertFrom-Json
@@ -100,9 +100,14 @@ foreach ($prop in $manifest.pages.PSObject.Properties) {
 }
 
 $report = @"
+---
+title: "Отчёт покрытия KB"
+provenance: manual
+author: t-800
+---
+
 # COVERAGE-REPORT
 
-**Generated:** $(Get-Date -Format "yyyy-MM-dd HH:mm")
 **Manifest pages:** $($rows.Count)
 **Explicit cards:** $explicit
 **Grouped coverage:** $grouped

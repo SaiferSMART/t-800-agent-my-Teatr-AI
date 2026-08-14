@@ -17,7 +17,6 @@ fi
 
 python3 << PY
 import json, re
-from datetime import datetime
 from pathlib import Path
 
 root = Path("$ROOT")
@@ -63,11 +62,15 @@ for url in manifest["pages"]:
             missing += 1
     rows.append((status, url, coverage))
 
-now = datetime.now().strftime("%Y-%m-%d %H:%M")
 lines = [
+    "---",
+    'title: "Отчёт покрытия KB"',
+    "provenance: manual",
+    "author: t-800",
+    "---",
+    "",
     "# COVERAGE-REPORT",
     "",
-    f"**Generated:** {now}",
     f"**Manifest pages:** {len(rows)}",
     f"**Explicit cards:** {explicit}",
     f"**Grouped coverage:** {grouped}",

@@ -1,7 +1,9 @@
 ---
 title: "Карта базы знаний T-800"
 audience: beginner
-last_synced: 2026-07-02
+last_synced: 2026-07-30
+provenance: manual
+author: t-800-factory
 ---
 
 # База знаний T-800 Agent
@@ -49,6 +51,7 @@ last_synced: 2026-07-02
 - [Контрольные точки](02-agent-i-rezhimy/kontrolnye-tochki.md)
 - [Очередь сообщений](02-agent-i-rezhimy/ochered-soobscheniy.md)
 - [Canvas и Shared Canvases](02-agent-i-rezhimy/canvas-i-shared-canvases.md)
+- [Side chats и поиск по чатам](02-agent-i-rezhimy/side-chats-and-search.md)
 
 ### 03 — Контекст
 - [Rules](03-kontekst/rules.md)
@@ -106,6 +109,7 @@ last_synced: 2026-07-02
 
 ### Универсальная память проектов
 - [16-universal-project-memory/INDEX.md](16-universal-project-memory/INDEX.md)
+- [Шпаргалка discovery](16-universal-project-memory/discovery-cheatsheet.md)
 
 ### Справочник
 - [Карта покрытия manifest](00-meta/manifest-coverage-map.md)
@@ -120,7 +124,7 @@ last_synced: 2026-07-02
 
 Если в Cursor появилось что-то новое:
 
-1. `.\scripts\sync-docs.ps1`
+1. Ручной sync: fetch официальных URL из `manifest.json` → `raw/` (или `Task(t-800-maintainer)`)
 2. `.\scripts\audit-coverage.ps1`
 3. `UPDATE-QUEUE.md` → упростить для новичков
 4. `CHANGELOG.md` → записать изменение
@@ -148,11 +152,19 @@ last_synced: 2026-07-02
 ### 14 — Мозги T-800
 - [Карта библиотекарей](14-t-800-brains/INDEX.md)
 
-### 15 — Teya Pro (для конвейера)
-- [Карта раздела](15-teya-pro-plugin/INDEX.md)
-- [Канонические пути](15-teya-pro-plugin/canonical-paths.md)
-- [Чеклист качества агента](15-teya-pro-plugin/agent-quality-checklist.md)
-- [Release handoff](15-teya-pro-plugin/plugin-release-handoff.md)
+### 17 — Аудит команды
+- [Карта раздела](17-team-capability-audit/INDEX.md)
+- [Roster и gaps](17-team-capability-audit/team-roster-gaps.md)
+
+### 18 — Разработка плагинов
+- [Карта раздела](18-plugin-development/INDEX.md)
+- [plugin.json — манифест плагина](18-plugin-development/plugin-json-manifest.md)
+- [Плагин с нуля: scaffold → install → packaging](18-plugin-development/plugin-from-scratch.md)
+- [Git-гигиена публичного репо](18-plugin-development/public-repo-git-hygiene.md)
+- [Cursor Router — автовыбор модели](18-plugin-development/cursor-router.md)
+
+### Продуктовые знания — адаптеры
+Знания продукта не входят в ядро KB: адаптер teya поставляет свой brain/knowledge — см. `adapters/teya/knowledge/`.
 
 ## Официальные источники
 

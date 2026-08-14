@@ -3,6 +3,8 @@ title: "Отдел Мозги — карта библиотекарей"
 audience: advanced
 tier: 4
 last_synced: 2026-07-06
+provenance: manual
+author: t-800-factory
 ---
 
 # Мозги T-800 Agent
@@ -18,7 +20,7 @@ last_synced: 2026-07-06
 | `t-800-brain-admin` | Teams, billing, integrations | `11-team-admin/` |
 | `t-800-brain-security` | Security, Run Modes | `04-bezopasnost/` |
 | `t-800-brain-tools` | Terminal, Browser, Search | `09-tools/` |
-| `t-800-brain-teya` | Teya Pro plugin | `15-teya-pro-plugin/` |
+| Adapter brains (`adapters/<id>/`) | Домен продукта | knowledge адаптера (`adapters/<id>/knowledge/`) |
 
 ## Разведчик
 
@@ -32,4 +34,4 @@ t-800-scout → t-800-brain-lead → domain brain(s) → t-800-factory
 
 ## Синхронизация KB
 
-`Task(t-800-maintainer)` + `scripts/sync-docs.ps1` — обновление карточек из официальных URL.
+`Task(t-800-maintainer)` — обновление карточек из официальных URL (ручной sync).
