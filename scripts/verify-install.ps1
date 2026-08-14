@@ -4,6 +4,7 @@
 
 $ErrorActionPreference = "Stop"
 
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $plugin = Join-Path $env:USERPROFILE ".cursor\plugins\local\t-800-agent"
 $agents = Join-Path $plugin "agents"
 $rules = Join-Path $plugin "rules"
@@ -18,9 +19,9 @@ $checks = @(
     @{ Name = "t-800-maintainer subagent"; Path = Join-Path $agents "t-800-maintainer.md"; ShouldExist = $true; MustContain = "name: t-800-maintainer" },
     @{ Name = "maintainer skill"; Path = Join-Path $skills "t-800-knowledge-base\SKILL.md"; ShouldExist = $true; MustContain = "disable-model-invocation: true" },
     @{ Name = "operator routing rule"; Path = Join-Path $rules "t-800-operator-routing.mdc"; ShouldExist = $true; MustContain = "Task(t-800-operator)" },
-    @{ Name = "knowledge refresh rule"; Path = Join-Path $rules "t-800-knowledge-refresh.mdc"; ShouldExist = $true; MustContain = "sync-docs" },
+    @{ Name = "knowledge refresh rule"; Path = Join-Path $rules "t-800-knowledge-refresh.mdc"; ShouldExist = $true; MustContain = "UPDATE-QUEUE" },
     @{ Name = "t-800-operator command"; Path = Join-Path $cmds "t-800-operator.md"; ShouldExist = $true; MustContain = "Task(t-800-operator)" },
-    @{ Name = "t-800-sync command"; Path = Join-Path $cmds "t-800-sync.md"; ShouldExist = $true; MustContain = "sync-docs" },
+    @{ Name = "t-800-sync command"; Path = Join-Path $cmds "t-800-sync.md"; ShouldExist = $true; MustContain = "UPDATE-QUEUE" },
     @{ Name = "t-800-maintain command"; Path = Join-Path $cmds "t-800-maintain.md"; ShouldExist = $true; MustContain = "Task(t-800-maintainer)" },
     @{ Name = "t-800-health command"; Path = Join-Path $cmds "t-800-health.md"; ShouldExist = $true; MustContain = "health-check" },
     @{ Name = "t-800-factory lead"; Path = Join-Path $agents "t-800-factory.md"; ShouldExist = $true; MustContain = "name: t-800-factory" },
@@ -32,14 +33,58 @@ $checks = @(
     @{ Name = "t800-onboard command"; Path = Join-Path $cmds "t800-onboard.md"; ShouldExist = $true; MustContain = "Task(t-800-onboard)" },
     @{ Name = "t800-audit command"; Path = Join-Path $cmds "t800-audit.md"; ShouldExist = $true; MustContain = "Task(t-800-system-auditor)" },
     @{ Name = "t800-plugin-audit command"; Path = Join-Path $cmds "t800-plugin-audit.md"; ShouldExist = $true; MustContain = "Task(t-800-plugin-auditor)" },
+    @{ Name = "t800-fix command"; Path = Join-Path $cmds "t800-fix.md"; ShouldExist = $true; MustContain = "t800_run_gate.py" },
+    @{ Name = "t800-doctor command"; Path = Join-Path $cmds "t800-doctor.md"; ShouldExist = $true; MustContain = "t800_doctor.py" },
+    @{ Name = "t800-loop command"; Path = Join-Path $cmds "t800-loop.md"; ShouldExist = $true; MustContain = "t-800-loop-conductor" },
     @{ Name = "t800-update command"; Path = Join-Path $cmds "t800-update.md"; ShouldExist = $true; MustContain = "install-plugin.sh" },
     @{ Name = "t-800-system-auditor"; Path = Join-Path $agents "t-800-system-auditor.md"; ShouldExist = $true; MustContain = "name: t-800-system-auditor" },
     @{ Name = "t-800-plugin-auditor"; Path = Join-Path $agents "t-800-plugin-auditor.md"; ShouldExist = $true; MustContain = "name: t-800-plugin-auditor" },
+    @{ Name = "t-800-loop-conductor"; Path = Join-Path $agents "t-800-loop-conductor.md"; ShouldExist = $true; MustContain = "name: t-800-loop-conductor" },
     @{ Name = "t800_plugin_audit.py"; Path = Join-Path $plugin "scripts\t800_plugin_audit.py"; ShouldExist = $true; MustContain = $null },
     @{ Name = "plugin-audit-contract.md"; Path = Join-Path $plugin "shared\plugin-audit-contract.md"; ShouldExist = $true; MustContain = $null },
     @{ Name = "loop-engineering-contract.md"; Path = Join-Path $plugin "shared\loop-engineering-contract.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "lesson-schema-contract.md"; Path = Join-Path $plugin "shared\lesson-schema-contract.md"; ShouldExist = $true; MustContain = $null },
     @{ Name = "STATE.md.template"; Path = Join-Path $plugin "templates\STATE.md.template"; ShouldExist = $true; MustContain = $null },
     @{ Name = "t800_loop_state.sh"; Path = Join-Path $plugin "scripts\t800_loop_state.sh"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_run_report.py"; Path = Join-Path $plugin "scripts\t800_run_report.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_lessons_export.py"; Path = Join-Path $plugin "scripts\t800_lessons_export.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_telemetry.py"; Path = Join-Path $plugin "scripts\t800_telemetry.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_risk_classifier.py"; Path = Join-Path $plugin "scripts\t800_risk_classifier.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_lessons_to_fixpack.py"; Path = Join-Path $plugin "scripts\t800_lessons_to_fixpack.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_golden_check.py"; Path = Join-Path $plugin "scripts\t800_golden_check.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800-loop-dispatcher.sh"; Path = Join-Path $plugin "scripts\t800-loop-dispatcher.sh"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_loop_queue_write.py"; Path = Join-Path $plugin "scripts\t800_loop_queue_write.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_kb_provenance_gate.py"; Path = Join-Path $plugin "scripts\t800_kb_provenance_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_agents_mirror_gate.py"; Path = Join-Path $plugin "scripts\t800_agents_mirror_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_plugin_sync.py"; Path = Join-Path $plugin "scripts\t800_plugin_sync.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_skill_frontmatter_gate.py"; Path = Join-Path $plugin "scripts\t800_skill_frontmatter_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_plugin_schema_gate.py"; Path = Join-Path $plugin "scripts\t800_plugin_schema_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_command_chains_gate.py"; Path = Join-Path $plugin "scripts\t800_command_chains_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_command_chains_gate.sh"; Path = Join-Path $plugin "scripts\t800_command_chains_gate.sh"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_cloud_hooks_smoke.py"; Path = Join-Path $plugin "scripts\t800_cloud_hooks_smoke.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_router_policy_gate.py"; Path = Join-Path $plugin "scripts\t800_router_policy_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_prompt_eval_gate.py"; Path = Join-Path $plugin "scripts\t800_prompt_eval_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_operator_docs_gate.py"; Path = Join-Path $plugin "scripts\t800_operator_docs_gate.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_usage_ingest.py"; Path = Join-Path $plugin "scripts\t800_usage_ingest.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_loop_hitl_approve.py"; Path = Join-Path $plugin "scripts\t800_loop_hitl_approve.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "t800_auto_low_batch.py"; Path = Join-Path $plugin "scripts\t800_auto_low_batch.py"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "shared/auto-low-hitl-contract.md"; Path = Join-Path $plugin "shared\auto-low-hitl-contract.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "templates/usage-draft.json.template"; Path = Join-Path $plugin "templates\usage-draft.json.template"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "tests/fixtures/auto-low/policy.enabled.json"; Path = Join-Path $plugin "tests\fixtures\auto-low\policy.enabled.json"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "shared/cloud-hooks-matrix.json"; Path = Join-Path $plugin "shared\cloud-hooks-matrix.json"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "shared/router-cost-policy-contract.md"; Path = Join-Path $plugin "shared\router-cost-policy-contract.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "shared/prompt-eval-contract.md"; Path = Join-Path $plugin "shared\prompt-eval-contract.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "shared/operator-surface-2026-07-contract.md"; Path = Join-Path $plugin "shared\operator-surface-2026-07-contract.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "playbooks/06-side-chat-i-async.md"; Path = Join-Path $plugin "playbooks\06-side-chat-i-async.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "tests/fixtures/prompt-eval/cases.json"; Path = Join-Path $plugin "tests\fixtures\prompt-eval\cases.json"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "skills/.../router-modes.md"; Path = Join-Path $skills "t-800-run-gates\references\router-modes.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "skill factory-scaffold"; Path = Join-Path $skills "t-800-factory-scaffold\SKILL.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "skill fix-pack"; Path = Join-Path $skills "t-800-fix-pack\SKILL.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "skill plugin-sync"; Path = Join-Path $skills "t-800-plugin-sync\SKILL.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "skill run-gates"; Path = Join-Path $skills "t-800-run-gates\SKILL.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "skill command-chains"; Path = Join-Path $skills "t-800-command-chains\SKILL.md"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "shared/command-chains.json"; Path = Join-Path $plugin "shared\command-chains.json"; ShouldExist = $true; MustContain = $null },
+    @{ Name = "registry/plugin.manifest.schema.json"; Path = Join-Path $plugin "registry\plugin.manifest.schema.json"; ShouldExist = $true; MustContain = $null },
     @{ Name = "t-800 legacy alias"; Path = Join-Path $cmds "t-800.md"; ShouldExist = $true; MustContain = "/t800-start" },
     @{ Name = "legacy forge command absent"; Path = Join-Path $cmds "forge.md"; ShouldExist = $false; MustContain = $null },
     @{ Name = "local plugin"; Path = Join-Path $plugin ".cursor-plugin\plugin.json"; ShouldExist = $true; MustContain = "t-800-agent" }
@@ -75,13 +120,15 @@ foreach ($check in $checks) {
     Write-Host "OK   $($check.Name)" -ForegroundColor Green
 }
 
-$pluginJson = Get-Content -LiteralPath (Join-Path $plugin ".cursor-plugin\plugin.json") -Raw -Encoding utf8
-if ($pluginJson -notlike '*"version": "1.12.1"*') {
-    Write-Host "FAIL plugin.json version must be 1.12.1" -ForegroundColor Red
+$pluginJsonPath = Join-Path $plugin ".cursor-plugin\plugin.json"
+$pluginJsonObj = Get-Content -LiteralPath $pluginJsonPath -Raw -Encoding utf8 | ConvertFrom-Json
+$actualVer = $pluginJsonObj.version
+if ([string]::IsNullOrWhiteSpace($actualVer)) {
+    Write-Host "FAIL plugin.json version unreadable" -ForegroundColor Red
     $failed++
 }
 else {
-    Write-Host "OK   plugin.json version 1.12.1" -ForegroundColor Green
+    Write-Host "OK   plugin.json version $actualVer" -ForegroundColor Green
 }
 
 $agentContent = Get-Content -LiteralPath (Join-Path $agents "t-800-operator.md") -Raw -Encoding utf8
@@ -129,6 +176,60 @@ if (Test-Path $staleSkill) {
 if (-not $stale) {
     Write-Host "OK   no stale user-home t-800 mirrors" -ForegroundColor Green
 }
+
+# P0 Surface+Sync+Gates (post-install: plugin_root == live → CONTENT_DRIFT=0)
+function Invoke-PluginGate {
+    param(
+        [string]$Name,
+        [string]$ScriptName
+    )
+    $path = Join-Path $plugin "scripts\$ScriptName"
+    if (-not (Test-Path $path)) {
+        $path = Join-Path $here $ScriptName
+    }
+    if (-not (Test-Path $path)) {
+        Write-Host "FAIL ${Name}: скрипт не найден ($ScriptName)" -ForegroundColor Red
+        $script:failed++
+        return
+    }
+    & python3 $path --plugin-root $plugin
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "OK   $Name" -ForegroundColor Green
+    }
+    else {
+        Write-Host "FAIL $Name" -ForegroundColor Red
+        $script:failed++
+    }
+}
+
+Invoke-PluginGate -Name "agents mirror gate" -ScriptName "t800_agents_mirror_gate.py"
+Invoke-PluginGate -Name "kb provenance gate" -ScriptName "t800_kb_provenance_gate.py"
+Invoke-PluginGate -Name "router policy gate" -ScriptName "t800_router_policy_gate.py"
+Invoke-PluginGate -Name "prompt eval gate" -ScriptName "t800_prompt_eval_gate.py"
+Invoke-PluginGate -Name "operator docs gate" -ScriptName "t800_operator_docs_gate.py"
+
+$syncPy = Join-Path $plugin "scripts\t800_plugin_sync.py"
+if (-not (Test-Path $syncPy)) {
+    $syncPy = Join-Path $here "t800_plugin_sync.py"
+}
+if (-not (Test-Path $syncPy)) {
+    Write-Host "FAIL plugin sync --check: скрипт не найден" -ForegroundColor Red
+    $failed++
+}
+else {
+    & python3 $syncPy --check --plugin-root $plugin
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "OK   plugin sync --check" -ForegroundColor Green
+    }
+    else {
+        Write-Host "FAIL plugin sync --check (CONTENT_DRIFT)" -ForegroundColor Red
+        $failed++
+    }
+}
+
+Invoke-PluginGate -Name "skill frontmatter gate" -ScriptName "t800_skill_frontmatter_gate.py"
+Invoke-PluginGate -Name "plugin schema gate" -ScriptName "t800_plugin_schema_gate.py"
+Invoke-PluginGate -Name "command chains gate" -ScriptName "t800_command_chains_gate.py"
 
 if ($failed -gt 0) {
     throw "T-800 Agent verification failed: $failed problem(s). Run .\scripts\install-plugin.ps1 and restart Cursor."

@@ -34,11 +34,13 @@ bash scripts/t800_loop_state.sh init --memory-path "<memory_path>"
 |---------------------|------------------|
 | «для этого проекта / в репо» | `cursor-workspace` → `.cursor/` |
 | «глобально / user rules» | `cursor-user` → `~/.cursor/` |
-| «для Teya / плагина X» | `cursor-plugin` → git checkout |
+| «для плагина X / продукта Y» | `cursor-plugin` → git checkout |
 
 Если неясно — **один вопрос:** плагин, проект или глобально?
 
 Контракты: `shared/artifact-surfaces-contract.md`, `shared/target-selection-contract.md`, `shared/project-memory-contract.md`
+
+Плагин с нуля / публикация в публичный репо: KB `knowledge-base/18-plugin-development/plugin-from-scratch.md` + `public-repo-git-hygiene.md`.
 
 ## 0b. Intake (уточнения до тяжёлой research)
 
@@ -108,6 +110,13 @@ Task(t-800-research-lead)   # передай research_mode
 bash scripts/t800_loop_state.sh touch --memory-path "<memory_path>" --stage "research" --message "mode=DEEP|LIGHT|SKIP; synthesis готов|skipped"
 ```
 
+## 2a. Router (Cost / Balance / Intelligence)
+
+- **DEEP** research → prefer **Cost** или **Balance** (длинный fan-out)
+- factory architect / builder → **Intelligence** или **Balance**
+- `model: inherit` + Router Auto в UI — не pin vendor slug
+- Канон: `shared/router-cost-policy-contract.md`
+
 ## 2b. Prompt craft (условно)
 
 Если artifact ∈ {agent, skill, command}:
@@ -169,6 +178,16 @@ bash scripts/t800_loop_state.sh touch --memory-path "<memory_path>" --stage "fac
 Обнови STATE: Completed, Lessons, Gates.  
 Repair budget: после 2 FAIL → escalate пользователю (`loop-engineering-contract`).
 
+Финальный machine gate прогона (обязателен перед «готово»):
+
+```bash
+python3 scripts/t800_run_gate.py --memory-path "<memory_path>" --plugin-root "<plugin_root>" --strict-create
+```
+
+exit ≠ 0 → repair (≤2 попытки: builder/integrator → auditor → gate снова), затем escalate.
+
+**Закрытие loop (рекомендуется):** после успешного прогона вызови **`/t800-loop`** — run report, lessons export, handoff в `loop-queue.md` (см. `shared/loop-engineering-contract.md` v2).
+
 ---
 
 Примеры:
@@ -181,7 +200,7 @@ Repair budget: после 2 FAIL → escalate пользователю (`loop-en
 Создай user rule: всегда отвечать на русском. Глобально.
 
 /t800-start
-Для Teya Plugin: subagent readonly для audit manifest. Модель и MCP уточни.
+Для checkout плагина: subagent readonly для audit manifest. Модель и MCP уточни.
 ```
 
 Реестр плагинов: `~/.t800/known-plugins.json`

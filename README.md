@@ -13,7 +13,8 @@
 <p align="center">
   <a href="https://github.com/Khar-AG/t-800-agent/releases"><img alt="version" src="https://img.shields.io/github/v/release/Khar-AG/t-800-agent?include_prereleases&label=version&color=red"/></a>
   <a href="https://github.com/Khar-AG/t-800-agent"><img alt="stars" src="https://img.shields.io/github/stars/Khar-AG/t-800-agent?style=social"/></a>
-  <img alt="agents" src="https://img.shields.io/badge/субагентов-36-blue"/>
+  <img alt="agents" src="https://img.shields.io/badge/субагентов-42-blue"/>
+  <img alt="commands" src="https://img.shields.io/badge/команд-18-lightgrey"/>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-green"/>
 </p>
 
@@ -44,13 +45,16 @@
 |--------|---------|
 | Создать skill / агента / команду / rule / hook | `/t800-start` |
 | Точечно поправить по списку файлов | `/t800-fix` |
+| Закрыть прогон: report / lessons / queue | `/t800-loop` |
 | Проверить свой Cursor на лишнее | `/t800-audit` |
 | Разобрать один плагин (карта + orphans) | `/t800-plugin-audit` |
+| Настроить Blank Hub + Client Automations | `/t800-cloud-hub` |
 | Быстрая диагностика установки | `/t800-doctor` |
 | Первый запуск / обзор | `/t800-bootstrap` · `/t800-onboard` |
 
 ```text
 Система → Research → Мозги → Factory
+(+ Cloud Hub — отдельный контур Automations)
 ```
 
 Директор зовёт **лидов отделов**; специалисты внутри отдела запускаются сами.
@@ -81,6 +85,30 @@
 ### Здоровье
 `/t800-doctor` — scripts-only: версия, memory, STATE, counts.  
 Автопроверка версии при **новом чате** (см. [Обновление](#обновление)).
+
+### Loop Engineering v2
+После `/t800-start` / крупного прогона — **`/t800-loop`**: run report, экспорт lessons, очередь handoff (`loop-queue.md`).  
+`risk_class` считает только скрипт-классификатор; pause через `.loop-paused`. Batch из queue → `/t800-fix` (`t800_lessons_to_fixpack.py`).
+
+### Защита factory (не обходить конвейер)
+Артефакты Cursor (`agents/`, skills, commands, rules, hooks) — только через `/t800-start` или `/t800-fix` → `Task(t-800-factory)`.  
+После Plan с factory-brief Implement не правит файлы в main chat (`shared/plan-to-factory-handoff-contract.md`).  
+Gates: `t800_factory_bypass_gate.py`, `t800_run_gate.py --strict-create`; hook `preToolUse` (artifact-edit guard) — WARN.
+
+### Cloud Hub (Cursor Automations)
+Отдел **Blank Plugin-Checkout Hub** + Client TZ-builder:
+
+| Кто | Роль |
+|-----|------|
+| `t-800-cloud-hub-lead` | Оркестратор; зовёт специалистов сам |
+| `t-800-cloud-hub-analyst` | Readonly карта умений checkout |
+| `t-800-cloud-hub-prompt` | Thin Hub + Client Instructions |
+| `t-800-cloud-hub-pack` | Схема `job_pack` / callback |
+| `t-800-cloud-hub-smoke` | Smoke-чеклист готовности |
+| `t-800-cursor-kb-curator` | Каденс живой KB Cloud (не на каждый hub-run) |
+
+Команда: **`/t800-cloud-hub`** (алиас `/t800-hub-setup`).  
+Артефакты → `{memory}/cloud-hub/` (не секреты в git плагина).
 
 ---
 
@@ -192,17 +220,20 @@ bash ~/.cursor/plugins/local/t-800-agent/scripts/t800-update-from-github.sh
 |---------|------------|--------|
 | **`/t800-start`** | Полный конвейер: research → brain → factory | Создать skill, агента, команду, rule, hook |
 | **`/t800-fix`** | Узкий PATCH по fix-pack | Поправить 1–N файлов после аудита |
+| **`/t800-loop`** | Loop v2: report → lessons → queue | Закрыть прогон / handoff в fix |
 | **`/t800-audit`** | Аудит всей системы Cursor | Лишние rules/skills, раздутый контекст |
 | **`/t800-plugin-audit`** | Аудит одного плагина | Карта, orphans, alwaysApply |
 | **`/t800-doctor`** | Быстрый health-отчёт | «Всё ли установлено» |
 | **`/t800-bootstrap`** | Первый запуск | Один раз после установки |
 | **`/t800-onboard`** | Обзор без глубокого аудита | «Что у меня стоит» |
+| **`/t800-cloud-hub`** | Blank Hub + Client Automations setup | Настройка пары Hub/Client |
 | **`/t800-update`** | Ручное обновление с GitHub | Редко; обычно хватает авто |
 
 ### Служебные / алиасы
 
 | Команда | Зачем |
 |---------|--------|
+| `/t800-hub-setup` | Алиас на `/t800-cloud-hub` |
 | `/t-800` | Алиас на `/t800-start` |
 | `/t-800-factory` | Только factory (если brain уже дал контекст) |
 | `/t-800-factory-validate` | Проверка артефактов factory |
@@ -240,6 +271,17 @@ audit-cursor-setup + bloat → Task(t-800-system-auditor) → диалог keep/
 ```text
 t800_plugin_audit.py → Task(t-800-plugin-auditor) → t800_audit_to_fixpack.py → /t800-fix
 ```
+
+**`/t800-cloud-hub`**
+
+```text
+Task(t-800-cloud-hub-lead)
+  → selective: analyst | prompt | pack | smoke
+  → артефакты в {memory}/cloud-hub/
+```
+
+Hub: thin Instructions, умения из checkout репо, цикл до app-callback → STOP.  
+Client: владеет полным job_pack TZ. Секреты и боевые packs — не в git плагина.
 
 ---
 
@@ -321,6 +363,16 @@ python3 ~/.cursor/plugins/local/t-800-agent/scripts/t800_doctor.py --workspace .
 Не запускай полный DEEP research. После правки — factory-auditor / machine gate.
 ```
 
+### 5b. Настроить Cloud Hub + Client Automations
+
+```text
+/t800-cloud-hub
+
+Настрой Blank Hub + Client для Cursor Automations в этом workspace.
+Нужны: capability-map, hub-instructions, client-instructions, pack-schema, smoke-report.
+Пиши только в {memory}/cloud-hub/. Секреты и боевые job_pack в git не клади.
+```
+
 ### 6. Создать новую slash-команду
 
 ```text
@@ -395,7 +447,7 @@ Surface: этот проект. Имя: docs-summarizer.
 
 ## Как устроен конвейер
 
-36 субагентов в четырёх отделах:
+42 субагента · 18 команд. T-800 — generic factory; Teya — через `adapters/teya/`:
 
 | Отдел | Лид | Роль |
 |-------|-----|------|

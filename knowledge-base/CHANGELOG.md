@@ -1,6 +1,188 @@
+---
+title: "Changelog базы знаний T-800"
+provenance: manual
+author: t-800
+---
+
 # Changelog базы знаний T-800
 
 Формат: дата — что изменилось — источник.
+
+## 2026-07-31 — Релиз 1.23.0: глобальный аудит и закалка плагина
+
+Итог глобального аудита (4 волны исправлений, 0 CRITICAL на выходе):
+
+- **Публичность**: история git переписана (filter-repo) — удалены личный путь и email владельца из всех коммитов; единый автор `t-800-agent@users.noreply.github.com`; финальный скан секретов/личных данных по tracked-файлам — чисто
+- **Целостность машинерии**: мёртвый хук `beforeFileEdit` заменён на реальный `preToolUse` (matcher Write|StrReplace|EditNotebook) — правки артефактов вне factory теперь реально блокируются; снят UTF-8 BOM в `knowledge-base/manifest.json` (чинит fail-closed kb-provenance); `t800_factory_bypass_gate.py` привязан к diff (время + покрытие файлов), +тест
+- **Универсальность**: ядро product-agnostic — Teya вынесена в `adapters/teya/` (brain-агент, KB-15, 4 скрипта, шаблон, контракт; 16 git mv с сохранением истории) и declarative `profiles/teya-*.md`; rg-гейт ядра — 5 pointer-файлов
+- **База знаний**: новый раздел `18-plugin-development/` (plugin.json-манифест, плагин с нуля/packaging, git-гигиена публичных репо, Cursor Router); 49 raw-снапшотов первоисточников (fetch 2026-07-30); hooks.md переработан (21 событие, preToolUse-эталон, release playbook); `manifest.json`: `last_full_sync`, sha256 страниц
+- **Гигиена**: кросс-платформа (+2 ps1: discover-target-project, command-chains gate), `requirements-dev.txt`, pytest 27/27 (phase2 legacy-tolerant), registry F4 (system-auditor → system), INSTALL по факту без хардкода версий, −4 legacy ps1, runtime timestamps вне git
+
+Гейты релиза: `run_gate --strict-create` PASS · `plugin_audit` PASS (42 агента, orphans=0) · schema PASS · kb provenance PASS · pytest 27/27 · sh -n 21 · py_compile 46 · frontmatter 74.
+
+## 2026-07-31 — Волна 4: hygiene release (без bump версии)
+
+- INSTALL.md по факту: версия — указатель на `.cursor-plugin/plugin.json`, 42 субагента · 18 команд, секция тестов (`requirements-dev.txt` + pytest), Windows-notes (hooks bash-only, ps1-пары)
+- Единый источник версии: docs без хардкода версий (НАЧАЛО-РАБОТЫ, ПОЛНАЯ-ИНСТРУКЦИЯ, T-800-AGENTS, СЦЕНАРИЙ-СТАРТА, README badges 42/18)
+- Runtime timestamps вне git: `adapters/teya/policy.json` очищен от `hook_enforce_ready*` (persist → `{memory}/adapters/teya/hook-enforce-readiness.json`), COVERAGE-REPORT без строки `**Generated:**`, audit-coverage.sh/.ps1 без datetime
+- Кросс-платформа: +`discover-target-project.ps1` (pwsh parity .sh), +`t800_command_chains_gate.ps1`; −4 legacy ps1 (sync-docs, register-agent, fix-kb-frontmatter, test-dialogues); hooks `hooks/*.sh` — bash-only (Git Bash/WSL)
+- Templates/registry: skill.md.template — `disable-model-invocation` по умолчанию выкл., factory-brief.template — flat YAML, command.md.template — stub-указатель; registry notes про description, `t-800-system-auditor` → category `system`; phase2-тесты legacy-tolerant (`scripts/legacy/` fallback); `requirements-dev.txt`
+
+## 2026-07-31 — Волна 3: база знаний (без bump версии)
+
+- Новый раздел `18-plugin-development/` (5 файлов): plugin.json-манифест, плагин с нуля (scaffold→install→packaging), git-гигиена публичных репо, Cursor Router + INDEX
+- `02-agent-i-rezhimy/side-chats-and-search.md` — side chats (/side, /btw), conversation search
+- Drift-обновления по cursor.com: hooks.md (21 событие, matcher, cloud-матрица), subagents.md (is_background, model-параметры, cloud), pricing (Router/пулы/Token Rate), agents-window.md, hooks-and-scripts.md (+гайд scripts), agent-vs-skill-vs-command.md (+commands how-to)
+- `raw/` восстановлен: 49 .md-снапшотов первоисточников (fetch 2026-07-30); manifest.json — 8 новых URL, `last_full_sync: 2026-07-30`
+- INDEX.md: +разделы 17 и 18
+
+## 1.22.1 — 2026-07-29 (PATCH: hook enforce + golden 1.22)
+
+- **Hook:** `factory_in_manifest` allow только `in_progress|running|started|active` (не `completed|ok|done`) — sibling `t-800-memory` с factory completed больше не обходит enforce; bypass `T800_FACTORY_RUN_ID` сохранён
+- **Golden:** `docs/examples/self-golden/expected.json` — paths 1.22 (usage_ingest, auto_low, HITL, hook, contracts/templates/tests) + hashes
+- **Tests:** `tests/test_hook_enforce_default.py` — isolated deny без sibling memory
+- Version bump `.cursor-plugin/plugin.json` → **1.22.1**
+
+## 1.22.0 — 2026-07-29 (Strengthen: usage ingest + auto-LOW HITL + hook enforce)
+
+- **Usage ingest:** `scripts/t800_usage_ingest.py` + `templates/usage-draft.json.template`; merge env/file/CLI → telemetry `event=usage_ingest` `source=ui_or_env`; секция в `shared/telemetry-kpi-contract.md`
+- **Auto-LOW HITL:** `auto_low.enabled=false` в `templates/loop-policy.json.template`; `t800_loop_hitl_approve.py` / `t800_auto_low_batch.py` (default dry-run; `--apply` → packs only, never factory); `shared/auto-low-hitl-contract.md`; `/t800-loop` §3b
+- **Hook:** `hooks/before-artifact-edit.sh` default **enforce**; opt-out `T800_HOOK_MODE` / `T800_TEYA_HOOK_MODE`=warn|observe; Teya `adapters/teya/policy.json` — note only (`auto_enable_enforce` остаётся false, `default_mode` warn)
+- Tests: `test_usage_ingest.py`, `test_auto_low_hitl.py`, `test_hook_enforce_default.py` + fixtures `tests/fixtures/auto-low/`
+- Docs: `T800-SYSTEM-MAP.md`, `docs/ПОЛНАЯ-ИНСТРУКЦИЯ.md`; `verify-install.sh` / `.ps1`
+- Version bump `.cursor-plugin/plugin.json` → **1.22.0**
+
+## 1.21.5 — 2026-07-29 (Docs hygiene SYSTEM-MAP KPI)
+
+- **`T800-SYSTEM-MAP.md`**: header/version **1.21.5**; источники CHANGELOG 1.12–1.21.4 (+ hygiene); KPI row CLOSED/partial (schema 1.21.1); telemetry вывод + App K без «полного KPI ещё нет»; registry note → текущая версия / roster 43; Teya vs T-800 **1.21.5**
+- **`shared/plugin-audit-contract.md`**: footer → 2026-07-29 · T-800 **1.21.5**
+- Version bump `.cursor-plugin/plugin.json` → **1.21.5**
+
+## 1.21.4 — 2026-07-29 (Side chat / Slack / async docs)
+
+- **`shared/operator-surface-2026-07-contract.md`**: main = factory; `/side` = разведка; Slack = plan-before-start; async/`Build in Parallel` для research fan-out
+- Docs: `docs/НАЧАЛО-РАБОТЫ.md`, `docs/ПОЛНАЯ-ИНСТРУКЦИЯ.md` (§ Side / Slack / Parallel)
+- Playbook: `playbooks/06-side-chat-i-async.md`
+- Operator bullets (+ mirror `.cursor/agents/`); **readonly: true** сохранён
+- Gate: `scripts/t800_operator_docs_gate.py` + `tests/test_operator_docs_gate.py` (маркеры `/side`, `Slack`, `Parallel|async`)
+- `tests/TEST-SCENARIOS.md` сценарий 10; `verify-install.sh` / `.ps1`
+
+## 1.21.3 — 2026-07-29 (Prompt eval gate)
+
+- **`shared/prompt-eval-contract.md`**: Phase 4 behavioral eval — must_contain / must_not_contain для 3 поверхностей
+- Fixtures: `tests/fixtures/prompt-eval/cases.json` (factory-bypass rule, loop-conductor open-only, intake no-WebSearch)
+- Gate: `scripts/t800_prompt_eval_gate.py` (+ optional `--promptfoo` WARN skip) + `tests/test_prompt_eval_gate.py`
+- `verify-install.sh` / `.ps1`: script + contract + run prompt-eval gate
+- `skills/t-800-run-gates/references/gate-matrix.md`: строка prompt-eval
+- Self-golden: `docs/examples/self-golden/expected.json` + hashes
+
+## 1.21.2 — 2026-07-29 (Router cost policy)
+
+- **`shared/router-cost-policy-contract.md`**: DEEP → Cost|Balance; factory architect/builder → Intelligence|Balance; `model: inherit` + Router Auto
+- Skill note: `skills/t-800-run-gates/references/router-modes.md` + ссылка в `SKILL.md`
+- `commands/t800-start.md` §2a Router; `agents/t-800-research-lead.md` DEEP Cost/Balance note (+ mirror)
+- Gate: `scripts/t800_router_policy_gate.py` + `tests/test_router_policy_note.py`
+- `verify-install.sh` / `.ps1`: script list + run router policy gate
+
+## 1.21.1 — 2026-07-29 (KPI telemetry)
+
+- **`scripts/t800_telemetry.py`**: schema **1.1** — optional `duration_ms` / `tokens_in` / `tokens_out` / `retries` (int≥0); CLI `--summarize` → `{memory}/telemetry/summary.json`; `--strict-kpi` (>50% без `duration_ms` → exit 1)
+- Контракт: `shared/telemetry-kpi-contract.md`; ссылка в `shared/loop-engineering-contract.md`
+- `t800_run_report.py`: optional `--duration-ms` / `--retries` (+ `--started-at`/`--ended-at` или env)
+- Tests: `tests/test_telemetry_kpi.py` + fixture `tests/fixtures/telemetry/sample-runs.jsonl`
+
+## 1.21.0 — 2026-07-29 (Cloud hooks matrix)
+
+- **`shared/cloud-hooks-matrix.json`** + **`shared/cloud-hooks-matrix-contract.md`**: матрица Cursor 3.11 cloud conversation hooks (observe / gate_candidate / local_only, sole_gate_forbidden)
+- **`scripts/t800_cloud_hooks_smoke.py`**: validate hooks.json — command-only, fail-open WARN на local_only, FAIL sole conversation gate / type=prompt; `--fixture-dir`
+- Fixtures: `tests/fixtures/cloud-hooks/` + runner `tests/test_cloud_hooks_smoke.py`
+- Example: `docs/examples/cloud-hub/hooks-observe.example.json`
+- `shared/cloud-hub-setup-contract.md` § Cloud hooks matrix; `t-800-cloud-hub-smoke` checklist
+- `verify-install.sh` / `.ps1`: наличие smoke script + matrix JSON
+
+## 1.20.1 — 2026-07-29 (Hardening gates)
+
+- **`t800_run_gate.py`**: `--require-kb-provenance`; auto-ON при `--strict-create` + `--plugin-root`: agents-mirror, kb-provenance, frontmatter-yaml, skill-frontmatter, plugin-schema, command-chains
+- **`verify-install.sh` / `.ps1`**: запуск `t800_kb_provenance_gate.py` (hard-FAIL); ps1 — agents mirror gate run
+- **`tests/test_teya_adapter_phase2.py`**: без TeyaPlugin → SKIP exit 0 + `phase2-last-run.json` status=skipped
+- Docs: `/t800-loop` в НАЧАЛО-РАБОТЫ / ПОЛНАЯ-ИНСТРУКЦИЯ; plugin-sync / run-gates skills — prefer `--check`
+- GitHub Release **v1.20.1** (закрывает gap релизов 1.18–1.20)
+
+## 1.20.0 — 2026-07-28 (Teya Adapter Phase 1+2)
+
+- **`adapters/teya/`** — отделение Teya-specific от generic core (manifest, profiles, discovery, handoff, checklist, policy, evidence bridge)
+- Handoff schema **2.0.0**: provenance fields, artifact_hashes, teya_entities, provenance_status
+- Scripts: `t800_teya_write_handoff.py`, `t800_teya_onboarding_check.py`, `t800_teya_onboarding_gate.py`, `t800_teya_hook_enforce_ready.py`
+- brain-teya / integrator: profiles `teya-plugin-dev` / `teya-client` / legacy `teya-pro`; Teya только через adapter handoff
+- discover: sibling `../TeyaPlugin` не canonical; installed local = readonly fallback
+- hook: modes observe|warn|enforce (default warn); без hardcoded sibling memory path
+- Rollout metadata link `factory_provenance` only (no streak/state); HITL materializer stubs only on Teya side
+- Fixtures: `tests/test_teya_adapter_phase1.py` (28 PASS), `tests/test_teya_adapter_phase2.py` (21 PASS)
+- Contract: `shared/teya-adapter-contract.md`
+- **Не меняет** Teya `rollout_state` / release / HITL / production green
+
+## 1.19.1 — 2026-07-24
+
+- **P0 Surface+Sync+Gates:** skills 1→6 (factory-scaffold, fix-pack, plugin-sync slash-only, run-gates, command-chains + KB)
+- `shared/command-chains.json` + `scripts/t800_command_chains_gate.py`
+- `scripts/t800_plugin_sync.py` — CONTENT_DRIFT sha256 `--check` / `--apply` → MIR только `~/.cursor/plugins/local/t-800-agent`
+- `scripts/t800_skill_frontmatter_gate.py` + `scripts/t800_plugin_schema_gate.py` + `registry/plugin.manifest.schema.json`
+- **Wire:** `t800_run_gate.py` flags `--require-skill-frontmatter` / `--require-plugin-json-schema` / `--require-command-chains` (auto-ON при `--strict-create` + `--plugin-root`)
+- `verify-install.sh` / `.ps1`: sync `--check` + новые gates; `install-plugin` — `t800_plugin_sync.py --apply` делегирует сюда
+- `T800-SYSTEM-MAP.md` / plugin-audit-contract footer → **1.19.1**
+
+## 1.19.0 — 2026-07-18
+
+- **Discovery:** marker + `knowledge_vault_path` не перебивает `profile=teya-plugin-dev` на TeyaPlugin
+- **Agents mirror gate:** `scripts/t800_agents_mirror_gate.py` — parity `agents/` ↔ `.cursor/agents/` (FS + git one-sided drift → FAIL)
+- `verify-install.sh` — always-on mirror gate; `t800_run_gate.py --require-agents-mirror` (opt-in)
+
+## 1.18.0 — 2026-07-18
+
+- **Lesson Lifecycle v1.1** — `status`: open | applied | rejected (`shared/lesson-schema-contract.md`)
+- `loop-queue`: секции **Open** / **Closed**; conductor — open-only approve
+- `t800_lessons_to_fixpack.py`: generate только open+LOW; `--mark-applied` / `--mark-rejected`
+- Fixtures: `tests/fixtures/loop/lifecycle/` + classifier ignore status-полей
+
+## 1.17.1 — 2026-07-17
+
+- **Target Knowledge Vault** — optional `knowledge_vault_path` в discovery/marker (runtime-only)
+- Machine gate: `scripts/t800_kb_provenance_gate.py` (manifest pages[] или YAML frontmatter provenance: manual)
+- Контракты: runtime-only forbid в `shared/project-memory-contract.md` + инлайн в `shared/project-discovery-contract.md`
+- Релизная гигиена acceptance: version bump + CHANGELOG (этот PATCH)
+
+## 1.17.0 — 2026-07-17
+
+- **Loop Engineering v2** — semi-manual закрытие прогона: report → lessons → queue handoff
+- Команда **`/t800-loop`** + субагент `t-800-loop-conductor` (system-adjacent, readonly)
+- Контракты: `shared/loop-engineering-contract.md` v2.0.0, `shared/lesson-schema-contract.md`
+- Скрипты: `t800_run_report.py`, `t800_lessons_export.py`, `t800_telemetry.py`, `t800_risk_classifier.py`, `t800_lessons_to_fixpack.py`, `t800_golden_check.py`, `t800-loop-dispatcher.sh`, `t800_loop_queue_write.py`
+- Память: `runs/`, `telemetry/`, `loop-queue.md`, `.loop-paused`, `golden/`, `loop/` (session-notice); fix-packs из lessons
+- `risk_class` — только script classifier; без stop/followup; sessionStart остаётся **один** hook (dispatcher внутри bootstrap)
+- Handoff: после `/t800-start` → `/t800-loop`; batch из queue → `/t800-fix`
+
+## 1.16.1 — 2026-07-14
+
+- Защита от обхода factory (анти-паттерн Zen Intel): Plan→Implement только через `/t800-start` / `/t800-fix`
+- Контракт: `shared/plan-to-factory-handoff-contract.md`
+- BLOCKER в `rules/t-800-mandatory-routing.mdc`: запрет Write/StrReplace артефактов Cursor вне factory
+- Machine gates: `scripts/t800_factory_bypass_gate.py`, `t800_run_gate.py --strict-create`
+- Hook `preToolUse` (matcher `Write|StrReplace|EditNotebook`) → `hooks/before-artifact-edit.sh` (v1: WARN, не hard-deny)
+- Тест-сценарий 6 в `tests/TEST-SCENARIOS.md`
+
+## 1.16.0 — 2026-07-13
+
+- **Отдел Cloud Hub Automation Setup** (6 агентов): `t-800-cloud-hub-lead` + analyst / prompt / pack / smoke + `t-800-cursor-kb-curator`
+- Команда **`/t800-cloud-hub`** (алиас `/t800-hub-setup`) — blank Hub + Client TZ-builder для Cursor Automations
+- Контракты: `shared/cloud-hub-setup-contract.md`, `shared/project-memory-dual-write-contract.md`
+- Rule: `rules/t-800-cloud-hub-routing.mdc` (не always-on)
+- Примеры паттернов: `docs/examples/cloud-hub/` (EXAMPLE only, без секретов)
+- README / инструкции обновлены; roster **42** Task-субагента
+
+## 1.15.3 — 2026-07-12
+
+- `HEALTH-REPORT.md`: убраны абсолютные пути машины автора (плагин для команды)
+- `health-check.sh` / `health-check.ps1`: в отчёт пишут относительные/`~/...` пути, не `/Users/...`
 
 ## 1.15.2 — 2026-07-09
 

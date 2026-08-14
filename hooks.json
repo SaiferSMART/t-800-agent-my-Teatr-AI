@@ -6,6 +6,13 @@
         "command": "bash hooks/t-800-session-bootstrap.sh",
         "timeout": 120
       }
+    ],
+    "preToolUse": [
+      {
+        "command": "bash hooks/before-artifact-edit.sh",
+        "matcher": "Write|StrReplace|EditNotebook",
+        "timeout": 15
+      }
     ]
   }
 }
